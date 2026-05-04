@@ -1,9 +1,10 @@
-import { fingerprintFile } from "./fingerprint";
+import { fingerprintFile, fingerprintStream } from "./fingerprint";
 
 const HELP = `monolith - CLI for monolith API
 
 Usage:
   monolith hash <path>    Compute SHA-256 fingerprint of a file (matches API)
+  monolith hash -         Read bytes from stdin and compute fingerprint
   monolith --help         Show this help
 `;
 
@@ -18,11 +19,11 @@ export async function run(argv: string[]): Promise<number> {
   if (cmd === "hash") {
     const path = rest[0];
     if (!path) {
-      process.stderr.write("Error: missing file path\nUsage: monolith hash <path>\n");
+      process.stderr.write("Error: missing file path\nUsage: monolith hash <path|->\n");
       return 2;
     }
     try {
-      const fp = await fingerprintFile(path);
+      const fp = path === "-" ? await fingerprintStream(process.stdin) : await fingerprintFile(path);
       process.stdout.write(`${fp}\n`);
       return 0;
     } catch (err) {

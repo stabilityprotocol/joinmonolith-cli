@@ -20,12 +20,15 @@ npx @joinmonolith/cli hash ./image.png
 
 ## Commands
 
-### `monolith hash <path>`
+### `monolith hash <path|->`
 
-Compute the SHA-256 fingerprint of a file using the same algorithm the Monolith API applies to uploaded images. Output is a `0x`-prefixed lowercase 64-char hex string.
+Compute the SHA-256 fingerprint of a file (or stdin) using the same algorithm the Monolith API applies to uploaded images. Output is a `0x`-prefixed lowercase 64-char hex string.
 
 ```bash
 $ monolith hash ./image.png
+0x20a7b5ffe611944e5773e165d2d2a25d79cea4880a27dbac4624b3158a7aef7e
+
+$ cat ./image.png | monolith hash -
 0x20a7b5ffe611944e5773e165d2d2a25d79cea4880a27dbac4624b3158a7aef7e
 ```
 

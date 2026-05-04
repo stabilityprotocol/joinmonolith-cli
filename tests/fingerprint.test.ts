@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fingerprintBytes, fingerprintFile } from "../src/fingerprint";
+import { Readable } from "node:stream";
+import { fingerprintBytes, fingerprintFile, fingerprintStream } from "../src/fingerprint";
 
 let tmp: string;
 
@@ -48,4 +49,18 @@ test("fingerprintFile throws for missing file", async () => {
 test("fingerprint output is 0x + 64 lowercase hex chars", () => {
   const fp = fingerprintBytes(Buffer.from("anything"));
   expect(fp).toMatch(/^0x[0-9a-f]{64}$/);
+});
+
+test("fingerprintStream matches fingerprintBytes for same content", async () => {
+  const content = Buffer.from("streamed monolith bytes");
+  const expected = fingerprintBytes(content);
+  const stream = Readable.from([content.subarray(0, 5), content.subarray(5)]);
+  expect(await fingerprintStream(stream)).toBe(expected);
+});
+
+test("fingerprintStream empty stream returns empty-input hash", async () => {
+  const stream = Readable.from([]);
+  expect(await fingerprintStream(stream)).toBe(
+    "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  );
 });

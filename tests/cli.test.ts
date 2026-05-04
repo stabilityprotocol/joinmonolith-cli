@@ -6,12 +6,20 @@ import { fingerprintBytes } from "../src/fingerprint";
 
 const ENTRY = join(import.meta.dir, "..", "bin", "monolith.ts");
 
-async function runCli(args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
+async function runCli(
+  args: string[],
+  stdin?: Uint8Array
+): Promise<{ code: number; stdout: string; stderr: string }> {
   const proc = Bun.spawn({
     cmd: ["bun", ENTRY, ...args],
+    stdin: stdin ? "pipe" : "ignore",
     stdout: "pipe",
     stderr: "pipe",
   });
+  if (stdin) {
+    proc.stdin.write(stdin);
+    await proc.stdin.end();
+  }
   const [stdout, stderr] = await Promise.all([
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),
@@ -63,4 +71,20 @@ test("unknown command exits 2", async () => {
   const { code, stderr } = await runCli(["bogus"]);
   expect(code).toBe(2);
   expect(stderr).toContain("Unknown command");
+});
+
+test("hash - reads from stdin", async () => {
+  const content = new TextEncoder().encode("monolith stdin bytes");
+  const expected = fingerprintBytes(content);
+  const { code, stdout } = await runCli(["hash", "-"], content);
+  expect(code).toBe(0);
+  expect(stdout.trim()).toBe(expected);
+});
+
+test("hash - empty stdin produces empty-input fingerprint", async () => {
+  const { code, stdout } = await runCli(["hash", "-"], new Uint8Array(0));
+  expect(code).toBe(0);
+  expect(stdout.trim()).toBe(
+    "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  );
 });
