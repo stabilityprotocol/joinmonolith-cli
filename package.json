@@ -27,7 +27,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && bun run build:js && bun run build:types && chmod +x dist/bin/monolith.js",
-    "build:js": "bun build ./index.ts --outdir=dist --target=node --format=esm && bun build ./bin/monolith.ts --outdir=dist/bin --target=node --format=esm",
+    "build:js": "bun build ./index.ts --outdir=dist --target=node --format=esm --packages=external && bun build ./bin/monolith.ts --outdir=dist/bin --target=node --format=esm --packages=external",
     "build:types": "tsc -p tsconfig.build.json",
     "test": "bun test",
     "start": "bun bin/monolith.ts",
@@ -55,5 +55,12 @@
     "@types/bun": "latest",
     "@types/node": "^25.6.0",
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@stabilityprotocol.com/phash": "^1.0.0",
+    "audio-decode": "^3.10.1",
+    "file-type": "^22.0.1",
+    "rusty-chromaprint-wasm": "^0.1.5",
+    "sharp": "^0.34.5"
   }
 }

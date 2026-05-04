@@ -1,10 +1,11 @@
 import { test, expect } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fingerprintBytes } from "../src/fingerprint";
 
 const ENTRY = join(import.meta.dir, "..", "bin", "monolith.ts");
+const FIXTURES = join(import.meta.dir, "fixtures");
 
 async function runCli(
   args: string[],
@@ -28,16 +29,27 @@ async function runCli(
   return { code, stdout, stderr };
 }
 
-test("hash command prints fingerprint of file", async () => {
+function parseHumanOutput(stdout: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const line of stdout.trim().split("\n")) {
+    const eq = line.indexOf("=");
+    if (eq > 0) out[line.slice(0, eq)] = line.slice(eq + 1);
+  }
+  return out;
+}
+
+test("hash command prints fingerprint + kind for arbitrary bytes", async () => {
   const tmp = mkdtempSync(join(tmpdir(), "monolith-cli-cli-"));
   try {
     const path = join(tmp, "data.bin");
-    const content = Buffer.from("monolith image bytes");
+    const content = Buffer.from("monolith arbitrary bytes");
     writeFileSync(path, content);
     const expected = fingerprintBytes(content);
     const { code, stdout } = await runCli(["hash", path]);
     expect(code).toBe(0);
-    expect(stdout.trim()).toBe(expected);
+    const fields = parseHumanOutput(stdout);
+    expect(fields.fingerprint).toBe(expected);
+    expect(fields.kind).toBe("other");
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
@@ -73,18 +85,64 @@ test("unknown command exits 2", async () => {
   expect(stderr).toContain("Unknown command");
 });
 
-test("hash - reads from stdin", async () => {
+test("hash - reads from stdin (other kind)", async () => {
   const content = new TextEncoder().encode("monolith stdin bytes");
   const expected = fingerprintBytes(content);
   const { code, stdout } = await runCli(["hash", "-"], content);
   expect(code).toBe(0);
-  expect(stdout.trim()).toBe(expected);
+  const fields = parseHumanOutput(stdout);
+  expect(fields.fingerprint).toBe(expected);
+  expect(fields.kind).toBe("other");
 });
 
-test("hash - empty stdin produces empty-input fingerprint", async () => {
-  const { code, stdout } = await runCli(["hash", "-"], new Uint8Array(0));
+test("hash PNG file emits image kind + phash", async () => {
+  const path = join(FIXTURES, "red64.png");
+  const content = readFileSync(path);
+  const expectedFp = fingerprintBytes(content);
+  const { code, stdout } = await runCli(["hash", path]);
   expect(code).toBe(0);
-  expect(stdout.trim()).toBe(
-    "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-  );
+  const fields = parseHumanOutput(stdout);
+  expect(fields.fingerprint).toBe(expectedFp);
+  expect(fields.kind).toBe("image");
+  expect(fields.mime).toBe("image/png");
+  expect(fields.phash).toMatch(/^[0-9a-f]{16}$/);
+});
+
+test("hash WAV file emits audio kind + chromaprint + meta", async () => {
+  const path = join(FIXTURES, "sine440.wav");
+  const content = readFileSync(path);
+  const expectedFp = fingerprintBytes(content);
+  const { code, stdout } = await runCli(["hash", path]);
+  expect(code).toBe(0);
+  const fields = parseHumanOutput(stdout);
+  expect(fields.fingerprint).toBe(expectedFp);
+  expect(fields.kind).toBe("audio");
+  expect(fields.mime).toBe("audio/wav");
+  expect(fields.chromaprint.length).toBeGreaterThan(0);
+  expect(fields.sampleRate).toBe("44100");
+  expect(fields.channels).toBe("1");
+});
+
+test("hash --json emits structured JSON for image", async () => {
+  const path = join(FIXTURES, "red64.png");
+  const { code, stdout } = await runCli(["hash", path, "--json"]);
+  expect(code).toBe(0);
+  const data = JSON.parse(stdout);
+  expect(data.fingerprint).toMatch(/^0x[0-9a-f]{64}$/);
+  expect(data.kind).toBe("image");
+  expect(data.mime).toBe("image/png");
+  expect(data.ext).toBe("png");
+  expect(data.phash).toMatch(/^[0-9a-f]{16}$/);
+});
+
+test("hash --json emits structured JSON for audio", async () => {
+  const path = join(FIXTURES, "sine440.wav");
+  const { code, stdout } = await runCli(["hash", path, "--json"]);
+  expect(code).toBe(0);
+  const data = JSON.parse(stdout);
+  expect(data.kind).toBe("audio");
+  expect(data.chromaprint).toBeTruthy();
+  expect(data.sampleRate).toBe(44100);
+  expect(data.channels).toBe(1);
+  expect(data.durationSec).toBeCloseTo(2, 1);
 });

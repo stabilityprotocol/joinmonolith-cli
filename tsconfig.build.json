@@ -9,9 +9,11 @@
     "rootDir": ".",
     "allowImportingTsExtensions": false,
     "verbatimModuleSyntax": false,
-    "moduleResolution": "node",
-    "module": "ESNext"
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["index.ts", "src/**/*.ts", "bin/**/*.ts"],
+  "include": ["index.ts", "src/**/*.ts", "bin/**/*.ts", "types/**/*.d.ts"],
   "exclude": ["tests/**", "dist/**", "node_modules"]
 }
