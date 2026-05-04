@@ -1,0 +1,58 @@
+{
+  "name": "@joinmonolith/cli",
+  "version": "0.1.0",
+  "description": "Official CLI for the Monolith API (api.joinmonolith.com)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "monolith": "./dist/bin/monolith.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "rm -rf dist && bun run build:js && bun run build:types && chmod +x dist/bin/monolith.js",
+    "build:js": "bun build ./index.ts --outdir=dist --target=node --format=esm && bun build ./bin/monolith.ts --outdir=dist/bin --target=node --format=esm",
+    "build:types": "tsc -p tsconfig.build.json",
+    "test": "bun test",
+    "start": "bun bin/monolith.ts",
+    "prepublishOnly": "bun run test && bun run build"
+  },
+  "keywords": [
+    "monolith",
+    "joinmonolith",
+    "cli",
+    "api",
+    "fingerprint",
+    "sha256"
+  ],
+  "license": "MIT",
+  "author": "Monolith",
+  "homepage": "https://joinmonolith.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joinmonolith/cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joinmonolith/cli/issues"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  }
+}

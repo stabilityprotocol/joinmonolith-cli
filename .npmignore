@@ -1,0 +1,11 @@
+src/
+bin/
+tests/
+node_modules/
+tsconfig*.json
+bun.lock
+.gitignore
+.npmignore
+CLAUDE.md
+AGENTS.md
+*.test.ts

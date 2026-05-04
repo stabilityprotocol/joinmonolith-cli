@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "allowImportingTsExtensions": false,
+    "verbatimModuleSyntax": false,
+    "moduleResolution": "node",
+    "module": "ESNext"
+  },
+  "include": ["index.ts", "src/**/*.ts", "bin/**/*.ts"],
+  "exclude": ["tests/**", "dist/**", "node_modules"]
+}
