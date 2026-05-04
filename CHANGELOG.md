@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/stabilityprotocol/joinmonolith-cli/compare/v0.1.2...v0.1.3) (2026-05-04)
+
+
+### Features
+
+* add image phash and audio chromaprint to hash command ([04191d9](https://github.com/stabilityprotocol/joinmonolith-cli/commit/04191d93bbb3546c6cddfcd459edf13b00c90bd4))
+
 ## [0.1.2](https://github.com/stabilityprotocol/joinmonolith-cli/compare/v0.1.1...v0.1.2) (2026-05-04)
 
 
