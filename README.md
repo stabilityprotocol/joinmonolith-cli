@@ -53,6 +53,29 @@ bun test
 bun run build
 ```
 
+## Releases
+
+Automated via [release-please](https://github.com/googleapis/release-please) and GitHub Actions.
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` → minor bump
+- `fix:` → patch bump
+- `feat!:` / `BREAKING CHANGE:` → major bump (or minor while pre-1.0)
+- `chore:`, `docs:`, `refactor:`, `test:` → no release
+
+Workflow:
+
+1. Merge conventional commits into `main`.
+2. `release-please` opens/updates a release PR with version bump + `CHANGELOG.md`.
+3. Merge the release PR → tag is created → npm publishes automatically (with provenance).
+
+### One-time setup
+
+- Create npm access token (`Automation` type), add as repo secret `NPM_TOKEN`.
+- Ensure the `@joinmonolith` org exists on npm and the token has publish rights.
+- GitHub repo settings → Actions → General → Workflow permissions → enable "Read and write" + "Allow GitHub Actions to create and approve pull requests".
+
 ## License
 
 MIT
