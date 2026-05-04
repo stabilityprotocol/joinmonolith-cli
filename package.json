@@ -1,6 +1,6 @@
 {
   "name": "@joinmonolith/cli",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Official CLI for the Monolith API (api.joinmonolith.com)",
   "type": "module",
   "main": "./dist/index.js",
